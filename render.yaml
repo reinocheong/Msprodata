@@ -8,6 +8,8 @@ services:
     branch: main
     # The 'dockerfilePath' points to our newly created Dockerfile
     dockerfilePath: ./Dockerfile
+    # Explicitly define the command to run when the container starts
+    dockerCommand: "gunicorn --bind 0.0.0.0:10000 app:app"
     # We still need the database connection string
     envVars:
       - key: DATABASE_URL
