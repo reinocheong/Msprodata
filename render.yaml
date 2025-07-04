@@ -14,3 +14,5 @@ services:
         fromDatabase:
           name: msprodata-db
           property: connectionString
+      - key: PATH
+        value: "${RENDER_ROOT}/bin:${PATH}"
