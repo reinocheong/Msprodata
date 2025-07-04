@@ -1,20 +1,11 @@
-from flask import Flask
+from app import create_app
 
-# This is a minimal Flask app for testing the deployment process itself.
-# It helps verify that the Docker container, Gunicorn, and Render's routing are all working correctly.
-# If this deploys successfully, the problem lies within the create_app() function in app.py.
+# Create an application instance by calling the factory function
+app = create_app()
 
-app = Flask(__name__)
-
-@app.route('/')
-def health_check():
-    """
-    A simple health check endpoint that Render can hit to confirm the service is up.
-    """
-    return "Minimal test app is running correctly!", 200
-
-# --- The original code is temporarily commented out for the test ---
-# from app import create_app
-# app = create_app()
-# if __name__ == "__main__":
-#     app.run(debug=True)
+# This block allows running the app directly with `python wsgi.py` for local development.
+# Gunicorn and other production WSGI servers will not use this block.
+if __name__ == "__main__":
+    # Note: `debug=True` is not recommended for production.
+    # The production server (Gunicorn) will handle the host and port.
+    app.run(debug=True)
