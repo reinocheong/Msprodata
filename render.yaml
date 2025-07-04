@@ -1,18 +1,18 @@
 services:
-     - type: web
-      name: msprodata
-      env: python
-      region: singapore
-      plan: free
-      branch: main
-      buildPacks:
-         - url: https://github.com/dsc/render-buildpack-wkhtmltopdf
-      buildCommand: "pip install -r requirements.txt"
-      startCommand: "gunicorn --bind 0.0.0.0:$PORT app:app"
-      envVars:
-         - key: PYTHON_VERSION
-          value: 3.11.9
-         - key: DATABASE_URL
-          fromDatabase:
-            name: msprodata-db
-            property: internalConnectionString
+  - type: web
+    name: msprodata
+    env: python
+    region: singapore
+    plan: free
+    branch: main
+    buildPacks:
+      - url: https://github.com/dsc/render-buildpack-wkhtmltopdf
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn --bind 0.0.0.0:$PORT app:app"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DATABASE_URL
+        fromDatabase:
+          name: msprodata-db
+          property: internalConnectionString
