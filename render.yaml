@@ -1,10 +1,11 @@
 services:
   - type: web
     name: msprodata
-    env: python
+    env: docker
     region: singapore
     plan: free
     branch: main
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -12,7 +13,5 @@ services:
           property: connectionString
       - key: FLASK_APP
         value: "app.py"
-    # The build command will now directly run the database upgrade
-    buildCommand: "pip install -r requirements.txt && flask db upgrade"
-    # The start command is only responsible for starting the server
-    startCommand: "gunicorn --bind 0.0.0.0:${PORT} wsgi:app"
+      - key: SECRET_KEY
+        generateValue: true

@@ -1,26 +1,49 @@
-# 使用官方 Python 运行时作为父镜像 (改用标准版以确保所有工具链可用)
-FROM python:3.11
+# Stage 1: Build stage with system dependencies
+FROM python:3.11-slim as builder
 
-# 设置容器内的工作目录
+# Install system dependencies required for WeasyPrint
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    python3-dev \
+    python3-cffi \
+    libpango-1.0-0 \
+    libpangoft2-1.0-0 \
+    libharfbuzz0b \
+    libfontconfig1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set the working directory
 WORKDIR /app
 
-# 防止 Python 将 .pyc 文件写入磁盘
-ENV PYTHONDONTWRITEBYTECODE 1
-# 确保 Python 输出直接发送到终端，不进行缓冲
-ENV PYTHONUNBUFFERED 1
-
-# 将 pip 安装可执行文件的目录添加到 PATH 环境变量
-# 这是解决 "gunicorn: not found" 错误的关键修复
-ENV PATH="/root/.local/bin:${PATH}"
-
-# 安装 WeasyPrint 和其他包所需的系统依赖项
-RUN apt-get update && apt-get install -y     build-essential     python3-dev     pango1.0-tools     libpangocairo-1.0-0     wkhtmltopdf     --no-install-recommends     && rm -rf /var/lib/apt/lists/*
-
-# 将依赖描述文件复制到容器中
+# Copy requirements and install python packages
 COPY requirements.txt .
+RUN pip wheel --no-cache-dir --wheel-dir=/app/wheels -r requirements.txt
 
-# 安装 requirements.txt 中指定的所有 Python 包
-RUN pip install --no-cache-dir -r requirements.txt
 
-# 将应用程序的其余代码复制到容器中
+# Stage 2: Final stage
+FROM python:3.11-slim
+
+# Set the working directory
+WORKDIR /app
+
+# Install system dependencies for WeasyPrint (runtime)
+RUN apt-get update && apt-get install -y \
+    libpango-1.0-0 \
+    libpangoft2-1.0-0 \
+    libharfbuzz0b \
+    libfontconfig1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy installed python packages from builder stage
+COPY --from=builder /app/wheels /wheels
+RUN pip install --no-cache-dir /wheels/*
+
+# Copy the rest of the application code
 COPY . .
+
+# Run database migrations
+# This command will run during the build process on Render
+RUN flask db upgrade
+
+# Set the entrypoint for the application
+CMD ["gunicorn", "--bind", "0.0.0.0:${PORT}", "wsgi:app"]
