@@ -23,6 +23,9 @@ RUN apt-get update && apt-get install -y \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
+# 创建一个符号链接，确保 'python' 命令可用
+RUN ln -s /usr/local/bin/python3 /usr/local/bin/python
+
 # 将依赖描述文件复制到容器中
 COPY requirements.txt .
 
@@ -33,4 +36,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # 使用 Gunicorn 运行应用程序的命令
-CMD ["/usr/local/bin/python", "-m", "gunicorn", "--bind", "0.0.0.0:10000", "wsgi:app"]
+CMD ["python", "-m", "gunicorn", "--bind", "0.0.0.0:10000", "wsgi:app"]
