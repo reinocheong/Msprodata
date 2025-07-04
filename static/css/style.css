@@ -1,0 +1,168 @@
+/* Custom styles for the民宿财务概览 application */
+
+/* General Body and Container Styles */
+body {
+    font-family: 'Open Sans', sans-serif;
+    background-color: #f8f9fa; /* Light gray background */
+    color: #343a40; /* Dark gray text */
+}
+
+.container-fluid {
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.card {
+    border-radius: 0.75rem; /* More rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+    border: none; /* Remove default border */
+}
+
+.card-header {
+    background-color: #e9ecef; /* Light header background */
+    border-bottom: 1px solid #dee2e6;
+    font-weight: bold;
+    color: #495057;
+    border-top-left-radius: 0.75rem;
+    border-top-right-radius: 0.75rem;
+}
+
+/* Navigation and Header */
+.navbar {
+    background-color: #28a745; /* Green navbar */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand,
+.nav-link {
+    color: white !important;
+}
+
+.navbar-brand:hover,
+.nav-link:hover {
+    color: #e2e6ea !important; /* Lighter on hover */
+}
+
+/* Forms */
+.form-control {
+    border-radius: 0.5rem;
+    border: 1px solid #ced4da;
+}
+
+.form-control:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.btn-primary {
+    background-color: #28a745;
+    border-color: #28a745;
+    border-radius: 0.5rem;
+}
+
+.btn-primary:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+
+.btn-outline-secondary {
+    border-radius: 0.5rem;
+}
+
+/* Specific Adjustments for existing elements */
+
+/* Login/Register Page */
+.login-container, .register-container {
+    max-width: 450px;
+    margin: 50px auto;
+    padding: 30px;
+    border-radius: 1rem;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+}
+
+/* Index Page - Summary Cards */
+.summary-cards .card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.summary-cards .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.summary-cards .card-title {
+    font-size: 1.1rem;
+    color: #6c757d;
+}
+
+.summary-cards .card-text {
+    font-size: 2.2rem;
+    font-weight: bold;
+}
+
+/* Colors for summary cards */
+.card.revenue .card-text { color: #28a745; } /* Green */
+.card.expenses .card-text { color: #dc3545; } /* Red */
+.card.profit .card-text { color: #007bff; } /* Blue */
+.card.fee .card-text { color: #6c757d; } /* Gray */
+.card.income .card-text { color: #17a2b8; } /* Teal */
+.card.occupancy .card-text { color: #ffc107; } /* Yellow/Orange */
+
+/* Detailed Records Table */
+.table-responsive {
+    margin-top: 20px;
+}
+
+.table thead th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Admin Panel */
+.user-table th, .user-table td {
+    vertical-align: middle;
+}
+
+.user-table .btn {
+    margin-right: 5px;
+}
+
+/* Reports Page */
+.filters-section .form-control {
+    width: auto; /* Adjust width for selects */
+}
+
+.checkbox-group {
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 10px;
+    background-color: #f8f9fa;
+}
+
+.report-output .table th,
+.report-output .table td {
+    white-space: nowrap;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+    background-color: rgba(255, 255, 255, 0.9);
+    display: none; /* Hidden by default */
+}
+
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+    color: #28a745;
+}
+
+.loading-text {
+    color: #28a745;
+    font-size: 1.2rem;
+    font-weight: bold;
+}

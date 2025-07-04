@@ -1,0 +1,37 @@
+{
+    "ms001": {
+        "password": "782544",
+        "role": "admin",
+        "allowed_units": []
+    },
+    "owner_A": {
+        "password": "passA",
+        "role": "owner",
+        "allowed_units": [
+            "Akademik A-06-18",
+            "Akademik A-08-18",
+            "Akademik B-07-17",
+            "Akademik B-09-01",
+            "Akademik B-10-18",
+            "Akademik B-10-27",
+            "Akademik B-11-26"
+        ]
+    },
+    "owner_B": {
+        "password": "passB",
+        "role": "owner",
+        "allowed_units": [
+            "Central Park D-0309"
+        ]
+    },
+    "Jasmin": {
+        "password": "123456",
+        "role": "owner",
+        "allowed_units": [
+            "Akademik B-10-18",
+            "Akademik B-10-27",
+            "Akademik B-11-26",
+            "Ksl Residence A-09-11"
+        ]
+    }
+}

@@ -1,0 +1,10 @@
+Flask==2.3.2
+Flask-Login==0.6.2
+Flask-SQLAlchemy==3.0.5
+gunicorn==21.2.0
+openpyxl==3.1.2
+pandas==2.2.2
+psycopg2-binary==2.9.7
+weasyprint==59.0
+Werkzeug==2.3.7
+xlrd==2.0.1
