@@ -14,17 +14,7 @@ ENV PYTHONUNBUFFERED 1
 ENV PATH="/root/.local/bin:${PATH}"
 
 # 安装 WeasyPrint 和其他包所需的系统依赖项
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    python3-dev \
-    pango1.0-tools \
-    libpangocairo-1.0-0 \
-    wkhtmltopdf \
-    --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/*
-
-# 创建一个符号链接，确保 'python' 命令可用
-RUN ln -s /usr/local/bin/python3 /usr/local/bin/python
+RUN apt-get update && apt-get install -y     build-essential     python3-dev     pango1.0-tools     libpangocairo-1.0-0     wkhtmltopdf     --no-install-recommends     && rm -rf /var/lib/apt/lists/*
 
 # 将依赖描述文件复制到容器中
 COPY requirements.txt .
