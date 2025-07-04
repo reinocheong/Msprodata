@@ -17,9 +17,15 @@ from sqlalchemy import or_, extract
 import click
 from werkzeug.security import generate_password_hash, check_password_hash
 
+# Initialize extensions without app object, will be connected in create_app
 db = SQLAlchemy()
 login_manager = LoginManager()
+# Set the login view for the login manager
 login_manager.login_view = 'login'
+
+# --- Database Models ---
+# It's common practice to define models in a separate file (e.g., models.py)
+# but for this structure, we'll keep them here. They depend on `db`.
 
 class User(UserMixin, db.Model):
     id = db.Column(db.String(80), primary_key=True)
@@ -42,45 +48,13 @@ class Expense(db.Model):
     date = db.Column(db.Date); unit_name = db.Column(db.String(120))
     description = db.Column(db.String(200)); debit = db.Column(db.Float)
 
-def get_filtered_data(year, month, room_type):
-    bookings_query = db.session.query(Booking); expenses_query = db.session.query(Expense)
-    if current_user.is_authenticated and current_user.role == 'owner':
-        allowed_units = current_user.allowed_units
-        if allowed_units:
-            bookings_query = bookings_query.filter(Booking.unit_name.in_(allowed_units))
-            expenses_query = expenses_query.filter(Expense.unit_name.in_(allowed_units))
-    if year:
-        bookings_query = bookings_query.filter(extract('year', Booking.checkin) == int(year)); expenses_query = expenses_query.filter(extract('year', Expense.date) == int(year))
-    if month:
-        bookings_query = bookings_query.filter(extract('month', Booking.checkin) == int(month)); expenses_query = expenses_query.filter(extract('month', Expense.date) == int(month))
-    if room_type and room_type != '所有房型':
-        bookings_query = bookings_query.filter(Booking.unit_name == room_type); expenses_query = expenses_query.filter(Expense.unit_name == room_type)
-    return pd.read_sql(bookings_query.statement, db.engine), pd.read_sql(expenses_query.statement, db.engine)
-
-def calculate_dashboard_data(bookings_df, expenses_df, year, month):
-    total_booking_revenue = bookings_df['total'].sum() if 'total' in bookings_df.columns else 0
-    total_monthly_expenses = expenses_df['debit'].sum() if 'debit' in expenses_df.columns else 0
-    gross_profit = total_booking_revenue - total_monthly_expenses; management_fee = gross_profit * 0.30
-    monthly_income = gross_profit - management_fee; total_occupancy_rate = 0
-    if year and month and current_user.is_authenticated and current_user.allowed_units:
-        _, num_days_in_month = calendar.monthrange(int(year), int(month)); total_room_nights = len(current_user.allowed_units) * num_days_in_month
-        occupied_nights = bookings_df['duration'].sum() if 'duration' in bookings_df.columns else 0
-        total_occupancy_rate = (occupied_nights / total_room_nights * 100) if total_room_nights > 0 else 0
-    summary = {'total_booking_revenue': float(total_booking_revenue),'total_monthly_expenses': float(total_monthly_expenses),'gross_profit': float(gross_profit),'management_fee': float(management_fee),'monthly_income': float(monthly_income),'total_occupancy_rate': float(total_occupancy_rate),}
-    analysis = {'total_bookings_count': 0, 'average_duration': 0,'average_daily_rate': 0, 'revpar': 0,'average_monthly_revenue': 0, 'average_monthly_expenses': 0,}
-    if not month and not bookings_df.empty:
-        total_bookings_count = len(bookings_df); average_duration = bookings_df['duration'].mean()
-        with np.errstate(divide='ignore', invalid='ignore'): adr_series = bookings_df['price'] / bookings_df['duration']
-        average_daily_rate = adr_series.replace([np.inf, -np.inf], np.nan).mean()
-        total_nights_in_year = len(current_user.allowed_units) * 365 if current_user.allowed_units else 0
-        revpar = total_booking_revenue / total_nights_in_year if total_nights_in_year > 0 else 0
-        average_monthly_revenue = total_booking_revenue / 12; average_monthly_expenses = total_monthly_expenses / 12
-        analysis.update({'total_bookings_count': int(total_bookings_count),'average_duration': float(average_duration),'average_daily_rate': float(average_daily_rate),'revpar': float(revpar),'average_monthly_revenue': float(average_monthly_revenue),'average_monthly_expenses': float(average_monthly_expenses),})
-    return summary, analysis
-
+# --- Application Factory Function ---
 def create_app():
+    """Create and configure an instance of the Flask application."""
     app = Flask(__name__, template_folder='templates')
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a_very_secret_key_for_dev')
+
+    # --- Configuration ---
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a_very_secret_key_for_dev_should_be_changed')
     
     database_url = os.environ.get('DATABASE_URL')
     if not database_url:
@@ -93,10 +67,73 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
-    # Initialize extensions
+    # --- Initialize Extensions with App ---
     db.init_app(app)
     login_manager.init_app(app)
 
+    # --- Helper Functions that need app context or db session ---
+    def get_filtered_data(year, month, room_type):
+        bookings_query = db.session.query(Booking); expenses_query = db.session.query(Expense)
+        if current_user.is_authenticated and current_user.role == 'owner':
+            allowed_units = current_user.allowed_units
+            if allowed_units:
+                bookings_query = bookings_query.filter(Booking.unit_name.in_(allowed_units))
+                expenses_query = expenses_query.filter(Expense.unit_name.in_(allowed_units))
+        if year:
+            bookings_query = bookings_query.filter(extract('year', Booking.checkin) == int(year)); expenses_query = expenses_query.filter(extract('year', Expense.date) == int(year))
+        if month:
+            bookings_query = bookings_query.filter(extract('month', Booking.checkin) == int(month)); expenses_query = expenses_query.filter(extract('month', Expense.date) == int(month))
+        if room_type and room_type != '所有房型':
+            bookings_query = bookings_query.filter(Booking.unit_name == room_type); expenses_query = expenses_query.filter(Expense.unit_name == room_type)
+        return pd.read_sql(bookings_query.statement, db.engine), pd.read_sql(expenses_query.statement, db.engine)
+
+    def calculate_dashboard_data(bookings_df, expenses_df, year, month):
+        total_booking_revenue = bookings_df['total'].sum() if 'total' in bookings_df.columns else 0
+        total_monthly_expenses = expenses_df['debit'].sum() if 'debit' in expenses_df.columns else 0
+        gross_profit = total_booking_revenue - total_monthly_expenses; management_fee = gross_profit * 0.30
+        monthly_income = gross_profit - management_fee; total_occupancy_rate = 0
+        if year and month and current_user.is_authenticated and current_user.allowed_units:
+            _, num_days_in_month = calendar.monthrange(int(year), int(month)); total_room_nights = len(current_user.allowed_units) * num_days_in_month
+            occupied_nights = bookings_df['duration'].sum() if 'duration' in bookings_df.columns else 0
+            total_occupancy_rate = (occupied_nights / total_room_nights * 100) if total_room_nights > 0 else 0
+        summary = {'total_booking_revenue': float(total_booking_revenue),'total_monthly_expenses': float(total_monthly_expenses),'gross_profit': float(gross_profit),'management_fee': float(management_fee),'monthly_income': float(monthly_income),'total_occupancy_rate': float(total_occupancy_rate),}
+        analysis = {'total_bookings_count': 0, 'average_duration': 0,'average_daily_rate': 0, 'revpar': 0,'average_monthly_revenue': 0, 'average_monthly_expenses': 0,}
+        if not month and not bookings_df.empty:
+            total_bookings_count = len(bookings_df); average_duration = bookings_df['duration'].mean()
+            with np.errstate(divide='ignore', invalid='ignore'): adr_series = bookings_df['price'] / bookings_df['duration']
+            average_daily_rate = adr_series.replace([np.inf, -np.inf], np.nan).mean()
+            total_nights_in_year = len(current_user.allowed_units) * 365 if current_user.allowed_units else 0
+            revpar = total_booking_revenue / total_nights_in_year if total_nights_in_year > 0 else 0
+            average_monthly_revenue = total_booking_revenue / 12; average_monthly_expenses = total_monthly_expenses / 12
+            analysis.update({'total_bookings_count': int(total_bookings_count),'average_duration': float(average_duration),'average_daily_rate': float(average_daily_rate),'revpar': float(revpar),'average_monthly_revenue': float(average_monthly_revenue),'average_monthly_expenses': float(average_monthly_expenses),})
+        return summary, analysis
+
+    def get_report_data_as_df(year, month, room_type, report_type):
+        if report_type == 'detailed':
+            b_df, e_df = get_filtered_data(year, month or None, room_type)
+            if not b_df.empty: b_df.loc[:,'type'] = 'booking'; b_df.rename(columns={'id': 'booking_number', 'total': 'total_booking_revenue'}, inplace=True)
+            if not e_df.empty: e_df.loc[:,'type'] = 'expense'; e_df.rename(columns={'id': 'expense_id', 'debit': 'additional_expense_amount', 'description': 'additional_expense_category'}, inplace=True)
+            return pd.concat([b_df, e_df], ignore_index=True).fillna('-')
+        elif report_type == 'annual':
+            b_df, e_df = get_filtered_data(year, None, room_type)
+            tr = b_df['total'].sum(); te = e_df['debit'].sum(); gp = tr - te; mf = gp * 0.3; np = gp - mf
+            return pd.DataFrame([{'year': year, 'total_revenue': tr, 'total_expenses': te, 'gross_profit': gp, 'management_fee': mf, 'net_profit': np}])
+        elif report_type == 'quarterly':
+            results = []
+            for q, months in {'Q1': [1,2,3], 'Q2': [4,5,6], 'Q3': [7,8,9], 'Q4': [10,11,12]}.items():
+                qb_df, qe_df = pd.DataFrame(), pd.DataFrame()
+                for m in months: b, e = get_filtered_data(year, m, room_type); qb_df = pd.concat([qb_df, b]); qe_df = pd.concat([qe_df, e])
+                tr = qb_df['total'].sum(); te = qe_df['debit'].sum(); gp = tr - te; mf = gp * 0.3; np = gp - mf
+                results.append({'季度': q, 'total_revenue': tr, 'total_expenses': te, 'gross_profit': gp, 'management_fee': mf, 'net_profit': np})
+            return pd.DataFrame(results)
+        return pd.DataFrame()
+
+    # --- User Loader ---
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(user_id)
+
+    # --- CLI Commands ---
     @app.cli.command('init-db')
     @click.option('--migrate-data', is_flag=True)
     def init_db_command(migrate_data):
@@ -119,7 +156,7 @@ def create_app():
                     click.echo(f'Error migrating users: {e}')
                     db.session.rollback()
 
-    # --- Main Routes ---
+    # --- Routes (Blueprints would be better for larger apps) ---
     @app.route('/')
     @app.route('/index')
     @login_required
@@ -152,7 +189,7 @@ def create_app():
     @app.route('/logout')
     @login_required
     def logout():
-        logout_user(); flash('���已成功登出。', 'success'); return redirect(url_for('login'))
+        logout_user(); flash('您已成功登出。', 'success'); return redirect(url_for('login'))
 
     @app.route('/reports')
     @login_required
@@ -313,26 +350,6 @@ def create_app():
             results[q] = {'total_revenue': total_revenue, 'total_expenses': total_expenses, 'gross_profit': gross_profit, 'management_fee': management_fee, 'net_profit': net_profit}
         return jsonify(results)
 
-    def get_report_data_as_df(year, month, room_type, report_type):
-        if report_type == 'detailed':
-            b_df, e_df = get_filtered_data(year, month or None, room_type)
-            if not b_df.empty: b_df.loc[:,'type'] = 'booking'; b_df.rename(columns={'id': 'booking_number', 'total': 'total_booking_revenue'}, inplace=True)
-            if not e_df.empty: e_df.loc[:,'type'] = 'expense'; e_df.rename(columns={'id': 'expense_id', 'debit': 'additional_expense_amount', 'description': 'additional_expense_category'}, inplace=True)
-            return pd.concat([b_df, e_df], ignore_index=True).fillna('-')
-        elif report_type == 'annual':
-            b_df, e_df = get_filtered_data(year, None, room_type)
-            tr = b_df['total'].sum(); te = e_df['debit'].sum(); gp = tr - te; mf = gp * 0.3; np = gp - mf
-            return pd.DataFrame([{'year': year, 'total_revenue': tr, 'total_expenses': te, 'gross_profit': gp, 'management_fee': mf, 'net_profit': np}])
-        elif report_type == 'quarterly':
-            results = []
-            for q, months in {'Q1': [1,2,3], 'Q2': [4,5,6], 'Q3': [7,8,9], 'Q4': [10,11,12]}.items():
-                qb_df, qe_df = pd.DataFrame(), pd.DataFrame()
-                for m in months: b, e = get_filtered_data(year, m, room_type); qb_df = pd.concat([qb_df, b]); qe_df = pd.concat([qe_df, e])
-                tr = qb_df['total'].sum(); te = qe_df['debit'].sum(); gp = tr - te; mf = gp * 0.3; np = gp - mf
-                results.append({'季度': q, 'total_revenue': tr, 'total_expenses': te, 'gross_profit': gp, 'management_fee': mf, 'net_profit': np})
-            return pd.DataFrame(results)
-        return pd.DataFrame()
-
     @app.route('/download_csv_report')
     @login_required
     def download_csv_report():
@@ -430,25 +447,5 @@ def create_app():
             flash(f"生成月结单时发生严重错误，请联系管理员。", "danger")
             return redirect(url_for('reports', error='pdf_generation_failed', message=str(e)))
 
+    # Return the app instance from the factory
     return app
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(user_id)
-
-# Create the Flask app instance using the factory
-app = create_app()
-
-if __name__ == '__main__':
-    # This block is for local development only
-    # Gunicorn will be used in production
-    app.run(debug=True)
-
-
-@login_manager.user_loader
-def load_user(user_id): return User.query.get(user_id)
-
-app = create_app()
-
-if __name__ == '__main__':
-    app.run(debug=True)

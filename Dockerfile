@@ -33,4 +33,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # 使用 Gunicorn 运行应用程序的命令
-CMD ["gunicorn", "--bind", "0.0.0.0:10000", "app:app"]
+CMD ["python", "-m", "gunicorn", "--bind", "0.0.0.0:10000", "app:app"]
