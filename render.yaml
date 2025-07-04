@@ -1,18 +1,16 @@
 services:
   - type: web
     name: msprodata
-    env: python
+    # We are now using the 'docker' environment instead of 'python'
+    env: docker
     region: singapore
     plan: free
     branch: main
-    buildCommand: "./build.sh"
-    startCommand: "gunicorn --bind 0.0.0.0:$PORT app:app"
+    # The 'dockerfilePath' points to our newly created Dockerfile
+    dockerfilePath: ./Dockerfile
+    # We still need the database connection string
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.9
       - key: DATABASE_URL
         fromDatabase:
           name: msprodata-db
           property: connectionString
-      - key: PATH
-        value: "${RENDER_ROOT}/bin:${PATH}"
