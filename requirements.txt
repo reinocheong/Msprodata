@@ -8,3 +8,4 @@ psycopg2-binary==2.9.7
 weasyprint==59.0
 Werkzeug==2.3.7
 xlrd==2.0.1
+pdfkit
