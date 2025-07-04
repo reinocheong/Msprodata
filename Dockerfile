@@ -1,5 +1,5 @@
-# 使用官方 Python 运行时作为父镜像
-FROM python:3.11-slim
+# 使用官方 Python 运行时作为父镜像 (改用标准版以确保所有工具链可用)
+FROM python:3.11
 
 # 设置容器内的工作目录
 WORKDIR /app

@@ -8,8 +8,8 @@ services:
     branch: main
     # The 'dockerfilePath' points to our newly created Dockerfile
     dockerfilePath: ./Dockerfile
-    # We wrap the command in 'bash -c' to ensure the PATH environment variable is correctly sourced.
-    dockerCommand: "bash -c 'python -m gunicorn --bind 0.0.0.0:10000 wsgi:app'"
+    # We can now use the standard command as the new base image has a proper PATH.
+    dockerCommand: "python -m gunicorn --bind 0.0.0.0:10000 wsgi:app"
     # We still need the database connection string
     envVars:
       - key: DATABASE_URL
