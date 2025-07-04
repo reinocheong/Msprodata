@@ -1,40 +1,36 @@
-# Step 1: Use an official Python runtime as a parent image
-# We use python:3.11-slim-buster which is a lightweight Debian-based image
-FROM python:3.11-slim-buster
+# 使用官方 Python 运行时作为父镜像
+FROM python:3.11-slim
 
-# Step 2: Set the working directory in the container
+# 设置容器内的工作目录
 WORKDIR /app
 
-# Step 3: Install wkhtmltopdf and its dependencies
-# We run apt-get update first, and then install the required libraries and wkhtmltopdf itself.
-# This is the most reliable way to install system packages in Docker.
-RUN apt-get update && \
-    apt-get install -y \
-    wkhtmltopdf \
-    libxrender1 \
-    libfontconfig1 \
-    libxext6 && \
-    # Clean up the apt-get cache to keep the image small
-    rm -rf /var/lib/apt/lists/*
+# 防止 Python 将 .pyc 文件写入磁盘
+ENV PYTHONDONTWRITEBYTECODE 1
+# 确保 Python 输出直接发送到终端，不进行缓冲
+ENV PYTHONUNBUFFERED 1
 
-# Set the PATH to include the directory where pip installs executables
+# 将 pip 安装可执行文件的目录添加到 PATH 环境变量
+# 这是解决 "gunicorn: not found" 错误的关键修复
 ENV PATH="/root/.local/bin:${PATH}"
 
-# Step 4: Copy the requirements file into the container
+# 安装 WeasyPrint 和其他包所需的系统依赖项
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    python3-dev \
+    pango1.0-tools \
+    libpangocairo-1.0-0 \
+    wkhtmltopdf \
+    --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
+
+# 将依赖描述文件复制到容器中
 COPY requirements.txt .
 
-# Step 5: Install any needed packages specified in requirements.txt
+# 安装 requirements.txt 中指定的所有 Python 包
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Step 6: Copy the rest of your application's code into the container
+# 将应用程序的其余代码复制到容器中
 COPY . .
 
-# Step 7: Expose the port your app runs on
-# The $PORT environment variable will be supplied by Render.
-# We default to 10000 if it's not set.
-EXPOSE 10000
-
-# Step 8: Define the command to run your app
-# This will be executed when the container starts.
-# We use gunicorn to run the Flask app.
-CMD gunicorn --worker-class gevent --workers 1 --bind 0.0.0.0:$PORT app:app
+# 使用 Gunicorn 运行应用程序的命令
+CMD ["gunicorn", "--bind", "0.0.0.0:10000", "app:app"]
