@@ -34,4 +34,4 @@ EXPOSE 10000
 # Step 8: Define the command to run your app
 # This will be executed when the container starts.
 # We use gunicorn to run the Flask app.
-CMD ["gunicorn", "--bind", "0.0.0.0:${PORT-10000}", "app:app"]
+CMD gunicorn --worker-class gevent --workers 1 --bind 0.0.0.0:$PORT app:app
