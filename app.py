@@ -83,9 +83,7 @@ def create_app():
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a_very_secret_key_for_dev')
     database_url = os.environ.get('DATABASE_URL')
     if not database_url:
-        instance_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'instance')
-        os.makedirs(instance_path, exist_ok=True)
-        database_url = f"sqlite:///{os.path.join(instance_path, 'site.db')}"
+        raise ValueError("No DATABASE_URL set for the application")
 
     if database_url and database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql://", 1)
@@ -450,6 +448,7 @@ def create_app():
 @login_manager.user_loader
 def load_user(user_id): return User.query.get(user_id)
 
+app = create_app()
+
 if __name__ == '__main__':
-    app = create_app()
     app.run(debug=True)
