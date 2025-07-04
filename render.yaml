@@ -13,6 +13,7 @@ services:
           property: connectionString
       - key: FLASK_APP
         value: "app.py"
-    # The build command (if needed) can go here.
-    # The start command will now run migrations and then start the server.
-    startCommand: "flask db upgrade && gunicorn --bind 0.0.0.0:${PORT} wsgi:app"
+    # The build command will run our migration script
+    buildCommand: "./build.sh"
+    # The start command is now only responsible for starting the server
+    startCommand: "gunicorn --bind 0.0.0.0:${PORT} wsgi:app"
