@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
-
-# We are removing 'set -o errexit' temporarily for debugging purposes
-# This will prevent the script from exiting on non-critical errors like 'tput'
+# exit on error
+set -o errexit
 
 echo "----> Build script started."
+
+# 0. Install essential build tools
+# Render's base image is minimal, so we need to install tools like wget and dpkg.
+echo "----> Step 0: Installing essential build tools (wget, dpkg)..."
+apt-get update -y
+apt-get install -y wget dpkg
+echo "----> Step 0: Essential tools installed."
 
 # 1. Install Python dependencies
 echo "----> Step 1: Installing Python dependencies..."
@@ -23,23 +29,15 @@ EXTRACT_DIR="/tmp/wkhtmltox_extract"
 echo "----> Creating binary directory at ${BIN_DIR}"
 mkdir -p ${BIN_DIR}
 
-# Download the package with error checking
+# Download the package
 echo "----> Step 2a: Downloading wkhtmltopdf from ${WKHTMLTOPDF_URL}..."
 wget -q -O ${DEB_FILE} ${WKHTMLTOPDF_URL}
-if [ $? -ne 0 ]; then
-  echo "!!!!!! ERROR: Failed to download wkhtmltopdf package. Exiting."
-  exit 1
-fi
 echo "----> Step 2a: Download successful."
 
-# Extract the package with error checking
+# Extract the package
 echo "----> Step 2b: Extracting ${DEB_FILE}..."
 mkdir -p ${EXTRACT_DIR}
 dpkg -x ${DEB_FILE} ${EXTRACT_DIR}
-if [ $? -ne 0 ]; then
-  echo "!!!!!! ERROR: Failed to extract .deb file. Exiting."
-  exit 1
-fi
 echo "----> Step 2b: Extraction successful."
 
 # Copy the executables
@@ -54,10 +52,6 @@ export PATH="${BIN_DIR}:${PATH}"
 # Verify the installation
 echo "----> Step 3: Verifying wkhtmltopdf installation..."
 wkhtmltopdf --version
-if [ $? -ne 0 ]; then
-  echo "!!!!!! WARNING: 'wkhtmltopdf --version' command failed. This might indicate missing libraries."
-  # We will not exit here, to see if the app can still run.
-fi
 echo "----> Step 3: Verification step finished."
 
 # Clean up
