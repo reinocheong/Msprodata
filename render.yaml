@@ -12,8 +12,7 @@ services:
           name: msprodata-db
           property: connectionString
       - key: FLASK_APP
-        value: app.py
-    # Set the startup command for the application
+        value: "app.py"
+    # The build command (if needed) can go here.
+    # The start command will now run migrations and then start the server.
     startCommand: "flask db upgrade && gunicorn --bind 0.0.0.0:${PORT} wsgi:app"
-    # The initialDeployHook will now handle the full migration setup
-    initialDeployHook: "flask db init && flask db migrate -m 'Initial migration' && flask db upgrade"
