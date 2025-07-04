@@ -11,7 +11,7 @@ services:
         fromDatabase:
           name: msprodata-db
           property: connectionString
-      - key: FLASK_APP
-        value: wsgi.py
-    # This command will run only on the initial deploy
-    initialDeployHook: "FLASK_APP=manage.py flask init-db"
+    # Set the startup command for the application
+    startCommand: "gunicorn wsgi:app"
+    # Set the initialization command
+    initialDeployHook: "export FLASK_APP=manage.py && flask init-db"
