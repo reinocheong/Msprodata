@@ -14,4 +14,4 @@ services:
       - key: FLASK_APP
         value: wsgi.py
     # This command will run only on the initial deploy
-    initialDeployHook: "flask init-db"
+    initialDeployHook: "FLASK_APP=manage.py flask init-db"
