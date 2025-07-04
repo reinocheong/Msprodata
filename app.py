@@ -1,8 +1,7 @@
 from flask import Flask
 from extensions import db, login_manager
+from flask_migrate import Migrate
 import os
-
-# Initialize extensions
 
 def create_app():
     """Create and configure an instance of the Flask application."""
@@ -25,7 +24,10 @@ def create_app():
     # Initialize extensions with the app
     db.init_app(app)
     login_manager.init_app(app)
-    login_manager.login_view = 'auth.login' # Corrected blueprint name
+    login_manager.login_view = 'auth.login'
+
+    # Initialize Flask-Migrate
+    migrate = Migrate(app, db)
 
     # Import and register blueprints
     from routes import main as main_blueprint
