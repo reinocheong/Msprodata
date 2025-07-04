@@ -17,6 +17,9 @@ RUN apt-get update && \
     # Clean up the apt-get cache to keep the image small
     rm -rf /var/lib/apt/lists/*
 
+# Set the PATH to include the directory where pip installs executables
+ENV PATH="/root/.local/bin:${PATH}"
+
 # Step 4: Copy the requirements file into the container
 COPY requirements.txt .
 
