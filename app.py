@@ -1,11 +1,8 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
+from extensions import db, login_manager
 import os
 
 # Initialize extensions
-db = SQLAlchemy()
-login_manager = LoginManager()
 
 def create_app():
     """Create and configure an instance of the Flask application."""
