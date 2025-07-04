@@ -81,16 +81,19 @@ def calculate_dashboard_data(bookings_df, expenses_df, year, month):
 def create_app():
     app = Flask(__name__, template_folder='templates')
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a_very_secret_key_for_dev')
+    
     database_url = os.environ.get('DATABASE_URL')
     if not database_url:
-        raise ValueError("No DATABASE_URL set for the application")
+        raise ValueError("CRITICAL: No DATABASE_URL environment variable set for the application.")
 
-    if database_url and database_url.startswith("postgres://"):
+    # Heroku/Render use "postgres://", but SQLAlchemy needs "postgresql://"
+    if database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql://", 1)
     
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
+    # Initialize extensions
     db.init_app(app)
     login_manager.init_app(app)
 
@@ -149,7 +152,7 @@ def create_app():
     @app.route('/logout')
     @login_required
     def logout():
-        logout_user(); flash('您已成功登出。', 'success'); return redirect(url_for('login'))
+        logout_user(); flash('���已成功登出。', 'success'); return redirect(url_for('login'))
 
     @app.route('/reports')
     @login_required
@@ -408,42 +411,39 @@ def create_app():
                 'no-outline': None,
                 '--enable-local-file-access': None
             }
-            config = pdfkit.configuration()
-            try:
-                pdf = pdfkit.from_string(html_string, False, options=options, configuration=config)
-            except OSError as e:
-                if "No wkhtmltopdf executable found" in str(e):
-                    # This is a fallback for local Windows development if wkhtmltopdf is in the default path
-                    try:
-                        config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe')
-                        pdf = pdfkit.from_string(html_string, False, options=options, configuration=config)
-                    except OSError:
-                         app.logger.error(f"wkhtmltopdf not found in default or specified path: {e}", exc_info=True)
-                         flash("服务器错误：找不到PDF生成工具(wkhtmltopdf)。请确认已正确安装。", "danger")
-                         return redirect(url_for('reports', error='pdf_tool_not_found', message=str(e)))
-                else:
-                    raise e
             
+            try:
+                # In a Linux Docker container, wkhtmltopdf should be in the PATH
+                pdf = pdfkit.from_string(html_string, False, options=options)
+            except OSError as e:
+                app.logger.error(f"PDFKit could not generate PDF: {e}", exc_info=True)
+                flash("服务器错误：无法生成PDF。请联系管理员。", "danger")
+                return redirect(url_for('reports', error='pdf_generation_failed', message=str(e)))
+
             response = make_response(pdf)
             response.headers['Content-Type'] = 'application/pdf'
             response.headers['Content-Disposition'] = f'attachment; filename={year}-{month}_statement.pdf'
             return response
 
-        except IOError as e:
-            if "No wkhtmltopdf executable found" in str(e):
-                app.logger.error(f"wkhtmltopdf not found: {e}", exc_info=True)
-                flash("服务器错误：找不到PDF生成工具(wkhtmltopdf)。请确认已正确安装并将其添加至系统PATH。", "danger")
-                return redirect(url_for('reports', error='pdf_tool_not_found', message=str(e)))
-            else:
-                app.logger.error(f"PDFKit IO Error: {e}", exc_info=True)
-                flash(f"生成PDF时发生IO错误，请联系管理员。", "danger")
-                return redirect(url_for('reports', error='pdf_generation_failed', message=str(e)))
         except Exception as e:
             app.logger.error(f"Error generating monthly statement for {year}-{month}: {e}", exc_info=True)
             flash(f"生成月结单时发生严重错误，请联系管理员。", "danger")
             return redirect(url_for('reports', error='pdf_generation_failed', message=str(e)))
 
     return app
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(user_id)
+
+# Create the Flask app instance using the factory
+app = create_app()
+
+if __name__ == '__main__':
+    # This block is for local development only
+    # Gunicorn will be used in production
+    app.run(debug=True)
+
 
 @login_manager.user_loader
 def load_user(user_id): return User.query.get(user_id)
