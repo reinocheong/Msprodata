@@ -1,11 +1,14 @@
+import os
 from app import create_app
 
-# Create an application instance by calling the factory function
-app = create_app()
+print("WSGI: Starting application entrypoint...")
 
-# This block allows running the app directly with `python wsgi.py` for local development.
-# Gunicorn and other production WSGI servers will not use this block.
+# Create the Flask app instance
+print("WSGI: Calling create_app()...")
+app = create_app()
+print("WSGI: create_app() returned successfully.")
+
 if __name__ == "__main__":
-    # Note: `debug=True` is not recommended for production.
-    # The production server (Gunicorn) will handle the host and port.
+    # This block is for local development, not for production with Gunicorn
+    print("WSGI: Running in local development mode.")
     app.run(debug=True)
