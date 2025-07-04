@@ -28,4 +28,4 @@ COPY . .
 # 使用 Gunicorn 运行应用程序的命令
 # 使用 shell 格式的 CMD 来允许环境变量替换
 # Gunicorn 将会绑定到 Render 平台通过 $PORT 环境变量指定的端口
-CMD python -m gunicorn --bind "0.0.0.0:${PORT}" wsgi:app
+CMD /usr/local/bin/python -m gunicorn --bind "0.0.0.0:${PORT}" wsgi:app
