@@ -11,12 +11,7 @@ def create_app():
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a_default_secret_key_for_development')
     
     # Configure database URI
-    database_url = os.environ.get('DATABASE_URL')
-    if not database_url:
-        raise ValueError("No DATABASE_URL set for the application")
-    
-    if database_url.startswith("postgres://"):
-        database_url = database_url.replace("postgres://", "postgresql://", 1)
+    database_url = "postgresql://msprodata_db_8gfs_user:lFhaCP6EWDZ87DcRojEUVxANJ9AInJrQ@dpg-d1k9e9ur433s73c9d1ig-a.singapore-postgres.render.com/msprodata_db_8gfs"
     
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
