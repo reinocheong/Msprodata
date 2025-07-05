@@ -6,7 +6,7 @@ services:
     plan: free
     branch: main
     dockerfilePath: ./Dockerfile
-    startCommand: "python -m gunicorn --bind 0.0.0.0:${PORT} wsgi:app"
+    startCommand: "sleep 900"
     envVars:
       - key: DATABASE_URL
         fromDatabase:
