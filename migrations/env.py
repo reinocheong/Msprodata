@@ -10,10 +10,18 @@ import sys
 # access to the values within the .ini file in use.
 config = context.config
 
+# Construct the absolute path to alembic.ini
+# Get the directory of the env.py script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+# Get the project root directory (one level up)
+project_root = os.path.dirname(script_dir)
+# Construct the absolute path to alembic.ini
+alembic_ini_path = os.path.join(project_root, 'alembic.ini')
+
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    fileConfig(alembic_ini_path)
 
 # add your model's MetaData object here
 # for 'autogenerate' support
