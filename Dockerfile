@@ -47,6 +47,7 @@ COPY models.py .
 COPY routes.py .
 COPY utils.py .
 COPY wsgi.py .
+COPY commands.py .
 COPY alembic.ini .
 COPY requirements.txt .
 COPY migrations/ ./migrations/
