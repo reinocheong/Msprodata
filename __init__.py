@@ -1,1 +1,1 @@
-# This file intentionally left blank to mark this directory as a Python package.
+from .app import create_app
