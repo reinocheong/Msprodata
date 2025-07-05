@@ -1,65 +1,40 @@
-# Stage 1: Build stage with system dependencies
-FROM python:3.11-bullseye as builder
+FROM python:3.9-slim
 
-# Install system dependencies required for WeasyPrint
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    python3-dev \
-    python3-cffi \
-    libpango-1.0-0 \
-    libpangoft2-1.0-0 \
-    libharfbuzz0b \
-    libfontconfig1 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Set the working directory
-WORKDIR /app
-
-# Copy requirements and install python packages
-COPY requirements.txt .
-RUN pip wheel --no-cache-dir --wheel-dir=/app/wheels -r requirements.txt
-
-
-# Stage 2: Final stage
-FROM python:3.11-bullseye
-
-# Set the working directory
-WORKDIR /app
-
-# Install system dependencies for WeasyPrint (runtime)
+# 安装系统依赖
 RUN apt-get update && apt-get install -y \
     libpango-1.0-0 \
-    libpangoft2-1.0-0 \
     libharfbuzz0b \
-    libfontconfig1 \
+    libpangoft2-1.0-0 \
+    libcairo2 \
+    procps \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy installed python packages from builder stage
-COPY --from=builder /app/wheels /wheels
-RUN pip install --no-cache-dir /wheels/*
+# 设置非root用户
+RUN useradd -m myuser && \
+    mkdir -p /app && \
+    chown myuser:myuser /app
 
-# Copy the rest of the application code
-COPY app.py .
-COPY auth.py .
-COPY config.py .
-COPY extensions.py .
-COPY models.py .
-COPY routes.py .
-COPY utils.py .
-COPY wsgi.py .
-COPY commands.py .
-COPY alembic.ini .
-COPY requirements.txt .
-COPY migrations/ ./migrations/
-COPY static/ ./static/
-COPY templates/ ./templates/
-COPY excel_data/ ./excel_data/
+WORKDIR /app
 
-# Copy the startup script and give it execution permissions
-COPY start.sh .
-RUN chmod +x ./start.sh
+# 先安装依赖（优化构建缓存）
+COPY --chown=myuser:myuser requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-ENV PATH="/root/.local/bin:/usr/local/bin:${PATH}"
+# 拷贝代码
+COPY --chown=myuser:myuser . .
 
-# Set the entrypoint for the application
-CMD ["./start.sh"]
+# 设置权限
+RUN if [ -d "/app/msprodata/excel_data" ]; then chmod -R a+r /app/msprodata/excel_data; fi
+
+# 切换到非root用户
+USER myuser
+
+# 启动命令（适配工厂模式）
+CMD ["gunicorn", \
+    "--bind", "0.0.0.0:5000", \
+    "--timeout", "300", \
+    "--workers", "2", \
+    "--worker-class", "gevent", \
+    "--access-logfile", "-", \
+    "--error-logfile", "-", \
+    "app:app"]  # 假设已按方法1暴露app变量
