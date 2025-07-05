@@ -6,7 +6,7 @@ services:
     plan: free
     branch: main
     dockerfilePath: ./Dockerfile
-    startCommand: "python -m flask db upgrade && python -m gunicorn --bind 0.0.0.0:${PORT} wsgi:app"
+    startCommand: "python -m gunicorn --bind 0.0.0.0:${PORT} wsgi:app"
     envVars:
       - key: DATABASE_URL
         fromDatabase:
