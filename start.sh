@@ -5,7 +5,7 @@ set -e
 
 # 1. Run database migrations
 echo "INFO: Running database migrations..."
-flask db upgrade
+/usr/local/bin/python -m flask db upgrade
 echo "INFO: Database migrations complete."
 
 # 2. Start the Gunicorn server
