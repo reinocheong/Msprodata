@@ -24,6 +24,10 @@ def create_app():
     # Initialize Flask-Migrate
     migrate = Migrate(app, db)
 
+    # Register the seed-data command
+    from commands import seed_data_command
+    app.cli.add_command(seed_data_command)
+
     # Import and register blueprints
     from routes import main as main_blueprint
     app.register_blueprint(main_blueprint)

@@ -52,6 +52,7 @@ COPY requirements.txt .
 COPY migrations/ ./migrations/
 COPY static/ ./static/
 COPY templates/ ./templates/
+COPY excel_data/ ./excel_data/
 
 # Copy the startup script and give it execution permissions
 COPY start.sh .
