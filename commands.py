@@ -41,9 +41,9 @@ def seed_data_command():
                 report_type = 'General'
 
             # Extract year and month from filename
-            parts = filename.split('_')
-            month_str, year_str = parts[0], parts[1]
-            year = int(year_str)
+            parts = filename.replace('.xlsx', '').split('_')
+            month_str, year_str_part = parts[0], parts[1]
+            year = int(year_str_part.split(' ')[0]) # Take only the year part
             month = int(month_str)
 
             # Read the first sheet to find the Unit Name
