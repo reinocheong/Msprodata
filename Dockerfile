@@ -53,6 +53,11 @@ COPY migrations/ ./migrations/
 COPY static/ ./static/
 COPY templates/ ./templates/
 
+# Copy the startup script and give it execution permissions
+COPY start.sh .
+RUN chmod +x ./start.sh
+
 ENV PATH="/root/.local/bin:/usr/local/bin:${PATH}"
 
 # Set the entrypoint for the application
+CMD ["./start.sh"]

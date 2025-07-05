@@ -6,7 +6,6 @@ services:
     plan: free
     branch: main
     dockerfilePath: ./Dockerfile
-    startCommand: "ls -la"
     envVars:
       - key: DATABASE_URL
         fromDatabase:
