@@ -53,6 +53,6 @@ COPY migrations/ ./migrations/
 COPY static/ ./static/
 COPY templates/ ./templates/
 
-ENV PATH="/root/.local/bin:${PATH}"
+ENV PATH="/root/.local/bin:/usr/local/bin:${PATH}"
 
 # Set the entrypoint for the application
