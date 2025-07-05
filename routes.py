@@ -15,7 +15,7 @@ def index():
     """
     # Default to the first property if none is selected
     selected_property_id = request.args.get('property_id')
-    user_properties = Property.query.filter_by(user_id=current_user.id).all()
+    user_properties = Property.query.filter_by(owner_id=current_user.id).all()
 
     if not selected_property_id and user_properties:
         selected_property_id = user_properties[0].id
