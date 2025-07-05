@@ -39,7 +39,19 @@ COPY --from=builder /app/wheels /wheels
 RUN pip install --no-cache-dir /wheels/*
 
 # Copy the rest of the application code
-COPY . .
+COPY app.py .
+COPY auth.py .
+COPY config.py .
+COPY extensions.py .
+COPY models.py .
+COPY routes.py .
+COPY utils.py .
+COPY wsgi.py .
+COPY alembic.ini .
+COPY requirements.txt .
+COPY migrations/ ./migrations/
+COPY static/ ./static/
+COPY templates/ ./templates/
 
 # Run database migrations
 # This command will run during the build process on Render
