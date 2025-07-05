@@ -23,18 +23,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 拷贝代码
 COPY --chown=myuser:myuser . .
 
+# 确保start.sh可执行
+RUN chmod +x ./start.sh
+
 # 设置权限
 RUN if [ -d "/app/msprodata/excel_data" ]; then chmod -R a+r /app/msprodata/excel_data; fi
 
 # 切换到非root用户
 USER myuser
 
-# 启动命令（适配工厂模式）
-CMD ["gunicorn", \
-    "--bind", "0.0.0.0:5000", \
-    "--timeout", "300", \
-    "--workers", "2", \
-    "--worker-class", "gevent", \
-    "--access-logfile", "-", \
-    "--error-logfile", "-", \
-    "app:app"]  # 假设已按方法1暴露app变量
+# 启动命令
+CMD ["./start.sh"]
