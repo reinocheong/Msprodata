@@ -2,8 +2,8 @@ import os
 import pandas as pd
 import click
 from flask.cli import with_appcontext
-from .extensions import db
-from .models import User, Property, FinancialReport
+from extensions import db
+from models import User, Property, FinancialReport
 
 @click.command(name='seed-data')
 @with_appcontext
