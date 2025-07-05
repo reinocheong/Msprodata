@@ -1,10 +1,9 @@
 #!/bin/sh
 set -e
 
-# 在启动应用前，先执行数据库初始化和数据迁移
-# 使用 --app wsgi:app 来明确指定应用入口，解决 ImportError
-echo "Attempting to initialize the database by specifying app entrypoint..."
-/usr/local/bin/flask --app wsgi:app init-db --migrate-data
+# 使用 python 脚本来初始化数据库
+echo "Attempting to initialize the database via Python script..."
+/usr/local/bin/python run_init_db.py
 
 # 启动 Gunicorn 服务
 echo "Starting Gunicorn server..."
