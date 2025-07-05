@@ -53,9 +53,4 @@ COPY migrations/ ./migrations/
 COPY static/ ./static/
 COPY templates/ ./templates/
 
-# Run database migrations
-# This command will run during the build process on Render
-RUN flask db upgrade
-
 # Set the entrypoint for the application
-CMD ["gunicorn", "--bind", "0.0.0.0:${PORT}", "wsgi:app"]
