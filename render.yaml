@@ -6,7 +6,7 @@ services:
     plan: free
     branch: main
     dockerfilePath: ./Dockerfile
-    startCommand: "python -c \"from wsgi import app\""
+    startCommand: "ls -la"
     envVars:
       - key: DATABASE_URL
         fromDatabase:
