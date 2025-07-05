@@ -1,5 +1,5 @@
 # Stage 1: Build stage with system dependencies
-FROM python:3.11-slim as builder
+FROM python:3.11-bullseye as builder
 
 # Install system dependencies required for WeasyPrint
 RUN apt-get update && apt-get install -y \
@@ -21,7 +21,7 @@ RUN pip wheel --no-cache-dir --wheel-dir=/app/wheels -r requirements.txt
 
 
 # Stage 2: Final stage
-FROM python:3.11-slim
+FROM python:3.11-bullseye
 
 # Set the working directory
 WORKDIR /app
