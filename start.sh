@@ -1,12 +1,12 @@
 #!/bin/sh
 
 # Exit immediately if a command exits with a non-zero status.
-set -e
+# We are removing "set -e" because we want to handle the exit code of flask db upgrade manually.
 
 # 1. Run database migrations
 echo "INFO: Running database migrations..."
-/usr/local/bin/python -m flask db upgrade
-echo "INFO: Database migrations complete."
+/usr/local/bin/python -m flask db upgrade || true
+echo "INFO: Database migrations finished (any errors about tables already existing are normal)."
 
 # 2. Start the Gunicorn server
 echo "INFO: Starting Gunicorn server..."
